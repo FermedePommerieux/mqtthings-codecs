@@ -6,7 +6,7 @@ and the following output : roller/0/command
 it needs calibration to detect the fully close/open state of the roller. This is required to
 detect the 'O', 'C' or 'S' states when the roller is stopped.
 
-On start, the roller could report a wrong state in the Home app
+On start, the roller could report a wrong state in the Home app (Lock and opening)
 
 Place this file alongside your
 config.json file, and add the following config:
@@ -63,7 +63,7 @@ function init( params ) {
  	obstruction_state=null, lock_state=null, door_position=null;
  	
 
-	config.topics = {
+config.topics = {
 		"getTargetDoorState": config.Shelly25Roller.getState.Target.topic,
 		"getCurrentDoorState": config.Shelly25Roller.getState.Current.topic,
 		"getObstructionDetected": config.Shelly25Roller.getState.Obstruction.topic,
