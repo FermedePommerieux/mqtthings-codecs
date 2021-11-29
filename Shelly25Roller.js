@@ -1,5 +1,12 @@
 /**
-A codec to control a roller with a Shelly25Swithc
+A codec to control a roller with a Shelly25Switch
+it uses the followings inputs : roller/0/command, roller/0, roller/0/stop_reason and /roller/0/pos
+and the following output : roller/0/command
+
+it needs calibration to detect the fully close/open state of the roller. This is required to
+detect the 'O', 'C' or 'S' states when the roller is stopped.
+
+On start, the roller would report a wrong state in Homekit, until the first request
 
 Place this file alongside your
 config.json file, and add the following config:
@@ -37,8 +44,8 @@ config.json file, and add the following config:
             			},
             		"Lock": {
             			"topic": "shellies/shellyswitch25-84CCA89FXXXX/roller/0/pos",
-            			"ACTIVE": 0,
-            			"INACTIVE": 100
+            			"ACTIVE": 0, // requires calibration
+            			"INACTIVE": 100 // requires calibration
             			}
             	}
             },
@@ -109,17 +116,14 @@ function init( params ) {
             	    if (lock_state == "S") {
             			if (config.logMqtt) {log("The door is stopped and secured, current state is closed");}
 						current_state = "C";
-						if (target_state == null) {target_state="S";}
             	    }
             	    else if (lock_state == "U") {
             			if (config.logMqtt) {log("The door is stopped and fully open");}
 	   	        		current_state = "O"; // Stopped
-	   	        		if (target_state == null) {target_state="O";}
             	    }
             	    else {
             			if (config.logMqtt) {log("The door is stopped and not fully open, current state is Stopped");}
 	   	        		current_state = "S"; // Stopped
-	   	        		if (target_state == null) {target_state="O";}
             	    }
 
         		} 
@@ -127,7 +131,6 @@ function init( params ) {
 				current_state = target_state; // [O,C] Opened/Closed
 			}
 		// not stopped, then moving	
-        else if (target_state == null) {target_state="O";} // must be initialized to smthg
         else if (target_state == "O") {current_state = "o";} // opening
         else if (target_state == "C") {current_state = "c";} // closing
     
@@ -139,11 +142,14 @@ function init( params ) {
             if (message != config.Shelly25Roller.getState.Obstruction.INACTIVE) {
             	obstruction_state = true;
             	if (config.logMqtt) {log("Obstruction detected, notifying !!!");}
-            	notify(config.obstructionDetected,true); // see if it works    	
+            	notify(config.obstructionDetected,true); // see if it works
+            	// here we could report a jammed LockState
+            	notify(config.lockCurrentState,2); // for 'J'
+            	lock_state = "J";  	
             }
             else {
             	obstruction_state = false;
-            	if (config.logMqtt) {log("Obstruction no detected, nothing to do");}  	
+            	if (config.logMqtt) {log("Obstruction not detected, nothing to do");}  	
             	}
 			output(obstruction_state);
 		}
@@ -152,20 +158,45 @@ function init( params ) {
        if (info.property == "lockCurrentState") {
             if (message == config.Shelly25Roller.getState.Lock.ACTIVE) {
             	lock_state = "S";
-            	if (config.logMqtt) {log("Lock detected, notifying !!!");}
-            	notify(config.lockCurrentState,1); // see if it works    	
+            	if (config.logMqtt) {log("Door fully close, Lock detected");}
+            	// fix current and target states
+					if (target_state == null) {
+						target_state="C"; notify(config.TargetState,1);
+					}
+					if (current_state == null) {
+						current_state="C"; notify(config.CurrentDoorState,1);
+						}
+            		notify(config.lockCurrentState,1); // see if it works    	
             }
             else if (message == config.Shelly25Roller.getState.Lock.INACTIVE) {
             	lock_state = "U";
-            	if (config.logMqtt) {log("Lock detected, notifying !!!");}
+            	if (config.logMqtt) {log("Door fully Open");}
+            	    // fix current and target states
+					if (target_state == null) {
+						target_state="O"; notify(config.TargetState,0);
+					}
+					if (current_state == null) {
+						current_state="O"; notify(config.CurrentDoorState,0);
+						}
             	notify(config.lockCurrentState,0); // see if it works    	
             }
             else {
-            	lock_state = "?";
-            	if (config.logMqtt) {log("Door not locked");}
-				notify(config.lockCurrentState,4); // see if it works    	
+            	if (config.logMqtt) {log("Door not locked see what it is doing");}
+				// at this time we don't know if the door is jammed let check 
+				if (obstruction_state == true) {
+            	if (config.logMqtt) {log("Door is Jammed, you should check why");}
+            		notify(config.lockCurrentState,2); // for 'J'
+            		lock_state = "J";  					
+				}
+				else {
+				// the door is not jammed, neither lock or full open report a '?' state
+            	if (config.logMqtt) {log("Door is doing something");}
+            		lock_state = "?";
+					notify(config.lockCurrentState,3); // reports a '?' state 
+				}
+
             }
-            door_position = message; // to a later use
+            door_position = message; // to a later use, does nothing today
 			output(lock_state);
 		}
 
