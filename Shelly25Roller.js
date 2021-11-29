@@ -126,8 +126,8 @@ function init( params ) {
 				current_state = "S"; // Stopped
 				}
 			} 
-					// not obstructed then its target_state
-					current_state = target_state; // [O,C] Opened/Closed
+			// not obstructed then its target_state
+			current_state = target_state; // [O,C] Opened/Closed
 		}
 		// not stopped, then moving	
 		else if (target_state == "O") {current_state = "o";} // opening
