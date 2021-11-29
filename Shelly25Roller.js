@@ -15,7 +15,7 @@ config.json file, and add the following config:
             "Shelly25Roller": {
             	"setState": {
             		"Target": {
-            			"topic": "shellies/shellyswitch25-84CCA89F72FA/roller/0/command",
+            			"topic": "shellies/shellyswitch25-84CCA89FXXXX/roller/0/command",
             			"open": "open",
             			"close": "close",
             			"stop": "stop"
@@ -23,21 +23,22 @@ config.json file, and add the following config:
             	},
             	"getState": {
             		"Target": {
-            		   "topic": "shellies/shellyswitch25-84CCA89F72FA/roller/0/command",
+            		   "topic": "shellies/shellyswitch25-84CCA89FXXXX/roller/0/command",
             			"open": "open",
             			"close": "close"
             			},
             		"Current": {
-            			"topic": "shellies/shellyswitch25-84CCA89F72FA/roller/0",
+            			"topic": "shellies/shellyswitch25-84CCA89FXXXX/roller/0",
             			"INACTIVE": "stop"
             			},
             		"Obstruction": {
-            			"topic": "shellies/shellyswitch25-84CCA89F72FA/roller/0/stop_reason",
+            			"topic": "shellies/shellyswitch25-84CCA89FXXXX/roller/0/stop_reason",
             			"INACTIVE": "normal"
             			},
             		"Lock": {
-            			"name": "shellies/shellyswitch25-84CCA89F72FA/roller/0/pos",
-            			"ACTIVE": 0
+            			"topic": "shellies/shellyswitch25-84CCA89FXXXX/roller/0/pos",
+            			"ACTIVE": 0,
+            			"INACTIVE": 100
             			}
             	}
             },
