@@ -6,7 +6,7 @@ and the following output : roller/0/command
 it needs calibration to detect the fully close/open state of the roller. This is required to
 detect the 'O', 'C' or 'S' states when the roller is stopped.
 
-On start, the roller would report a wrong state in Homekit, until the first request
+On start, the roller could report a wrong state in the Home app
 
 Place this file alongside your
 config.json file, and add the following config:
@@ -109,25 +109,19 @@ function init( params ) {
 		if (config.logMqtt) {log(`Checking if message = ${config.Shelly25Roller.getState.Current.INACTIVE}`);}
 		if (message == config.Shelly25Roller.getState.Current.INACTIVE ) {
 		// not moving check if its obstructed or just stopped by user
-			if (obstruction_state === true ||
-				target_state == "O" ||
-				target_state == "C") {
-					if (config.logMqtt) {log("The door is stopped, we need to know if its secured or not");}
-					if (lock_state == "S") {
-						if (config.logMqtt) {log("The door is stopped and secured, current state is closed");}
-						current_state = "C";
-					}
+			if (config.logMqtt) {log("The door is stopped, we need to know if its secured or not");}
+			if (lock_state == "S") {
+				if (config.logMqtt) {log("The door is stopped and secured, current state is closed");}
+				current_state = "C";
+			}
 			else if (lock_state == "U") {
 				if (config.logMqtt) {log("The door is stopped and fully open");}
 				current_state = "O"; // Stopped
 			}
-			else {
+			else { 
 				if (config.logMqtt) {log("The door is stopped and not fully open, current state is Stopped");}
-				current_state = "S"; // Stopped
-				}
-			} 
-			// not obstructed then its target_state
-			current_state = target_state; // [O,C] Opened/Closed
+				current_state = "S"; // Stopped but could be Obstructed
+			}
 		}
 		// not stopped, then moving	
 		else if (target_state == "O") {current_state = "o";} // opening
